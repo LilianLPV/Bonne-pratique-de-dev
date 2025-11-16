@@ -1,7 +1,69 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+interface Weather {
+  city: string;
+  temp: number;
+  feels_like: number;
+  humidity: number;
+  wind: number;
+  description: string;
+}
+
+interface ForecastItem {
+  time: string;
+  temp: number;
+}
+
+interface AirQuality {
+  aqi: number;
+  pm25: number;
+  pm10: number;
+  ozone: number;
+}
+
+interface CitySearch {
+  name: string;
+  lat: number;
+  lon: number;
+  country: string;
+}
+
+// ------ API RESPONSES ------
+interface CurrentWeatherResponse {
+  name: string;
+  main: {
+    temp: number;
+    feels_like: number;
+    humidity: number;
+  };
+  wind: {
+    speed: number;
+  };
+  weather: { description: string }[];   // <--- FIXED
+}
+
+interface ForecastApiItem {
+  dt_txt: string;
+  main: { temp: number };
+}
+
+interface ForecastApiResponse {
+  list: ForecastApiItem[];
+}
+
+interface AirApiResponse {
+  list: {
+    main: { aqi: number };
+    components: {
+      pm2_5: number;
+      pm10: number;
+      o3: number;
+    };
+  }[];                                  // <--- FIXED
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -10,44 +72,48 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
+
+  view: 'dashboard' | 'forecast' = 'dashboard';
 
   city = 'Paris';
   lat = 48.8566;
   lon = 2.3522;
 
-  weather: any = null;
-  forecast: any[] = [];
-  airQuality: any = null;
-  searchResults: any[] = [];
+  weather: Weather | null = null;
+  forecast: ForecastItem[] = [];
+  airQuality: AirQuality | null = null;
+  searchResults: CitySearch[] = [];
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.getWeather();
   }
 
-  // Recherche de villes
-  searchCity() {
-    this.http
-      .get<any[]>(`http://localhost:3000/api/weather/geocode?q=${this.city}`)
-      .subscribe((res) => this.searchResults = res);
+  setView(v: 'dashboard' | 'forecast') {
+    this.view = v;
   }
 
-  // Lorsqu'une ville est cliquée
-  selectCity(city: any) {
+  searchCity(): void {
+    this.http
+      .get<CitySearch[]>(`http://localhost:3000/api/weather/geocode?q=${this.city}`)
+      .subscribe((res) => (this.searchResults = res));
+  }
+
+  selectCity(city: CitySearch): void {
     this.lat = city.lat;
     this.lon = city.lon;
     this.city = city.name;
     this.getWeather();
   }
 
-  // Charge météo + prévisions + air quality
-  getWeather() {
-
+  getWeather(): void {
     // Météo actuelle
     this.http
-      .get<any>(`http://localhost:3000/api/weather/current?lat=${this.lat}&lon=${this.lon}`)
+      .get<CurrentWeatherResponse>(
+        `http://localhost:3000/api/weather/current?lat=${this.lat}&lon=${this.lon}`
+      )
       .subscribe((res) => {
         this.weather = {
           city: res.name,
@@ -61,9 +127,11 @@ export class DashboardComponent {
 
     // Prévisions
     this.http
-      .get<any>(`http://localhost:3000/api/weather/forecast?lat=${this.lat}&lon=${this.lon}`)
+      .get<ForecastApiResponse>(
+        `http://localhost:3000/api/weather/forecast?lat=${this.lat}&lon=${this.lon}`
+      )
       .subscribe((res) => {
-        this.forecast = res.list.slice(0, 4).map((item: any) => ({
+        this.forecast = res.list.slice(0, 4).map((item) => ({
           time: item.dt_txt.split(' ')[1],
           temp: item.main.temp
         }));
@@ -71,7 +139,9 @@ export class DashboardComponent {
 
     // Qualité de l'air
     this.http
-      .get<any>(`http://localhost:3000/api/weather/air?lat=${this.lat}&lon=${this.lon}`)
+      .get<AirApiResponse>(
+        `http://localhost:3000/api/weather/air?lat=${this.lat}&lon=${this.lon}`
+      )
       .subscribe((res) => {
         const a = res.list[0];
         this.airQuality = {
