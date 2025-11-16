@@ -5,62 +5,63 @@
 
     <nav>
       <a class="active">Dashboard</a>
-      <a>Prévisions</a>
-      <a>Qualité de l'air</a>
-      <a>Paramètres</a>
     </nav>
   </aside>
 
   <main class="content">
 
     <header class="topbar">
-      <input type="text" placeholder="Rechercher une ville..." class="search">
-      <button class="btn">Rechercher</button>
+      <input type="text" [(ngModel)]="city" placeholder="Rechercher une ville..." class="search">
+      <button class="btn" (click)="searchCity()">Rechercher</button>
     </header>
 
     <section class="cards">
 
+      <!-- Résultats de recherche -->
       <div class="card large">
         <h3> Résultats de recherche</h3>
         <ul class="city-list">
-          <li>Paris (FR) — 48.85 / 2.35</li>
-          <li>Marseille (FR) — 43.29 / 5.36</li>
-          <li>Lyon (FR) — 45.75 / 4.85</li>
+          <li *ngFor="let c of searchResults" (click)="selectCity(c)">
+            {{ c.name }} ({{ c.country }}) — {{ c.lat }} / {{ c.lon }}
+          </li>
         </ul>
       </div>
 
-      <div class="card weather">
-        <h3> Météo actuelle : Paris</h3>
+      <!-- Météo actuelle -->
+      <div class="card weather" *ngIf="weather">
+        <h3> Météo actuelle : {{ weather.city }}</h3>
+
         <div class="weather-info">
           <div>
-            <h1>12°C</h1>
-            <p>Ciel dégagé</p>
+            <h1>{{ weather.temp }}°C</h1>
+            <p>{{ weather.description }}</p>
           </div>
         </div>
 
         <div class="details">
-          <p><strong>Humidité :</strong> 72%</p>
-          <p><strong>Vent :</strong> 5 m/s</p>
-          <p><strong>Ressenti :</strong> 10°C</p>
+          <p><strong>Humidité :</strong> {{ weather.humidity }}%</p>
+          <p><strong>Vent :</strong> {{ weather.wind }} m/s</p>
+          <p><strong>Ressenti :</strong> {{ weather.feels_like }}°C</p>
         </div>
       </div>
 
-      <div class="card">
+      <!-- Prévisions -->
+      <div class="card" *ngIf="forecast?.length">
         <h3>Prévisions</h3>
         <ul class="forecast">
-          <li>09:00 —  11°C</li>
-          <li>12:00 —  13°C</li>
-          <li>15:00 —  14°C</li>
-          <li>18:00 —  12°C</li>
+          <li *ngFor="let f of forecast">
+            {{ f.time }} — {{ f.temp }}°C
+          </li>
         </ul>
       </div>
 
-      <div class="card">
+      <!-- Qualité de l'air -->
+      <div class="card" *ngIf="airQuality">
         <h3> Qualité de l'air</h3>
-        <p><strong>AQI :</strong> 2 (bon)</p>
-        <p><strong>PM2.5 :</strong> 8</p>
-        <p><strong>PM10 :</strong> 12</p>
-        <p><strong>Ozone :</strong> 60</p>
+        <p><strong>AQI :</strong> {{ airQuality.aqi }}</p>
+        <p><strong>PM2.5 :</strong> {{ airQuality.pm25 }}</p>
+        <p><strong>PM10 :</strong> {{ airQuality.pm10 }}</p>
+        <p><strong>Ozone :</strong> {{ airQuality.ozone }}</p>
       </div>
 
     </section>
