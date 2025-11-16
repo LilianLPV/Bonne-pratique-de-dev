@@ -4,7 +4,14 @@
     <h2 class="logo">Météo</h2>
 
     <nav>
-      <a class="active">Dashboard</a>
+      <a
+        tabindex="0"
+        (click)="setView('dashboard')"
+        (keydown.enter)="setView('dashboard')"
+        [class.active]="view === 'dashboard'"
+      >
+        Dashboard
+      </a>
     </nav>
   </aside>
 
@@ -19,9 +26,14 @@
 
       <!-- Résultats de recherche -->
       <div class="card large">
-        <h3> Résultats de recherche</h3>
+        <h3>Résultats de recherche</h3>
         <ul class="city-list">
-          <li *ngFor="let c of searchResults" (click)="selectCity(c)">
+          <li
+            *ngFor="let c of searchResults"
+            tabindex="0"
+            (click)="selectCity(c)"
+            (keydown.enter)="selectCity(c)"
+          >
             {{ c.name }} ({{ c.country }}) — {{ c.lat }} / {{ c.lon }}
           </li>
         </ul>
@@ -29,7 +41,7 @@
 
       <!-- Météo actuelle -->
       <div class="card weather" *ngIf="weather">
-        <h3> Météo actuelle : {{ weather.city }}</h3>
+        <h3>Météo actuelle : {{ weather.city }}</h3>
 
         <div class="weather-info">
           <div>
@@ -57,7 +69,7 @@
 
       <!-- Qualité de l'air -->
       <div class="card" *ngIf="airQuality">
-        <h3> Qualité de l'air</h3>
+        <h3>Qualité de l'air</h3>
         <p><strong>AQI :</strong> {{ airQuality.aqi }}</p>
         <p><strong>PM2.5 :</strong> {{ airQuality.pm25 }}</p>
         <p><strong>PM10 :</strong> {{ airQuality.pm10 }}</p>
